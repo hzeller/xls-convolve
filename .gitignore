@@ -1,0 +1,5 @@
+*~
+*.ir
+*.opt.ir
+.envrc
+.direnv
