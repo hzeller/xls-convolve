@@ -3,6 +3,8 @@ TOP=top
 DELAY_MODEL=sky130
 PIPELINE_STAGES=1
 
+convolve.sv:
+
 %.ir: %.x
 	xls-ir-converter --top=$(TOP) --dslx_stdlib_path=$(DSLX_STDLIB_PATH) --output_file=$@ $^
 
