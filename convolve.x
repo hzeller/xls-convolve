@@ -47,11 +47,16 @@ pub fn convolve<WIDTH: u32>(samples: ConvolveNumber[WIDTH],
 }
 
 // Convolve with array for coefficient, ringbuffer for samples.
-pub fn convolve_rb<WIDTH: u32, RB_BUF_SZ: u32>(samples: RingBuffer<WIDTH, RB_BUF_SZ>,
-					       coefficients: ConvolveNumber[WIDTH])
+// Only do N operations starting at offset.
+pub fn convolve_rb<WIDTH: u32, RB_BUF_SZ: u32, N: u32 = { WIDTH }>(samples: RingBuffer<WIDTH, RB_BUF_SZ>,
+					       coefficients: ConvolveNumber[WIDTH],
+					       offset: u32)
      -> ConvolveNumber {
-    for (idx, acc): (u32, ConvolveNumber) in u32:0..WIDTH {
-        float32::fma(coefficients[idx], RingBuffer_ReadAtOffset<WIDTH, RB_BUF_SZ>(samples, idx), acc)
+    assert!(offset + N <= WIDTH, "Sweep outside range");
+    for (idx, acc): (u32, ConvolveNumber) in u32:0..N {
+        float32::fma(coefficients[idx + offset],
+	             RingBuffer_ReadAtOffset<WIDTH, RB_BUF_SZ>(samples, idx + offset),
+		     acc)
     }(float32::zero(u1:0))
 }
 
@@ -59,7 +64,7 @@ pub fn convolve_rb<WIDTH: u32, RB_BUF_SZ: u32>(samples: RingBuffer<WIDTH, RB_BUF
 const TOP_WIDTH = u32:32;
 fn top(s: RingBuffer<TOP_WIDTH, u32:32>,
        c: ConvolveNumber[TOP_WIDTH]) -> ConvolveNumber {
-    convolve_rb(s, c)
+    convolve_rb(s, c, u32:0)
 }
 
 #[test]
@@ -85,7 +90,7 @@ fn convolve_rb_test() {
         RingBuffer_PushValue(samples, float32::cast_from_fixed_using_rne(val))
     }(RingBuffer_default<u32:6, u32:8>());
 
-    let result = convolve_rb(samples, coefficients);
+    let result = convolve_rb(samples, coefficients, u32:0);
     let expected = float32::cast_from_fixed_using_rne(s32:104);
     assert_eq(result, expected);
 
@@ -95,7 +100,14 @@ fn convolve_rb_test() {
     }(samples);
     // Values in sliding ringbuffer window now [4, 5, 6, 12, -1, 7]
 
-    let result = convolve_rb(samples, coefficients);
+    let result = convolve_rb(samples, coefficients, u32:0);
     let expected = float32::cast_from_fixed_using_rne(s32:-42);
+    assert_eq(result, expected);
+
+    // Now let's do that in multiple steps.
+    const N = u32:3;
+    let part1 = convolve_rb<u32:6, u32:8, N>(samples, coefficients, u32:0);
+    let part2 = convolve_rb<u32:6, u32:8, N>(samples, coefficients, N);
+    let result = float32::add(part1, part2);
     assert_eq(result, expected);
 }
