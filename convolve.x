@@ -8,10 +8,12 @@ type ConvolveNumber = float32::F32;
 // unsigned. BUF_SIZE needs to be at least 1 more than SIZE
 // assert(SIZE < BUF_SIZE)
 // assert(is_pow2(BUF_SIZE))
-// TODO: std::round_up_to_nearest_pow2_unsigned does not const-eval ?
+//
+// Ideally want to caclulate BUF_SZ: u32 = { std::next_pow2(SIZE + 1) }, but
+// that only works with tiv2 (but: https://github.com/google/xls/issues/2358)
 pub struct RingBuffer<SIZE: u32, BUF_SZ: u32> {
     buffer: ConvolveNumber[BUF_SZ],     // TODO: want type template parameter
-    write_pos: uN[std::clog2(BUF_SZ)],  // TODO: want as type CountType = ...
+    write_pos: uN[std::clog2(BUF_SZ)],  // TODO: want as local type CountType = ...
 }
 
 // Should be in impl RingBuffer of sorts at some point.
