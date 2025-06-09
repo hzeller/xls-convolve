@@ -6,6 +6,7 @@ let
     src = builtins.fetchurl {
       url = "https://github.com/google/xls/releases/download/${version}/xls-${version}-linux-x64.tar.gz";
     };
+    nativeBuildInputs = [ pkgs.makeWrapper ];
     installPhase = ''
         mkdir -p $out/bin
 
@@ -23,11 +24,17 @@ let
         # xls standard library
         mkdir -p $out/lib/xls
         mv xls/dslx $out/lib/xls
+
+        runHook postInstall
     '';
 
     outputHashAlgo = "sha256";
     outputHashMode = "recursive";
     outputHash = "sha256-2BXkM3gy6uVPQu/ZIH8hybm8gyKltMdXaijPBzim/QU=";
+    postFixup = ''
+      wrapProgram $out/bin/dslx-ls \
+        --add-flags "--stdlib_path=$out/lib/xls/dslx/stdlib"
+    '';
   };
 in pkgs.mkShell {
   packages = with pkgs;
