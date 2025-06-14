@@ -37,18 +37,9 @@ fn RingBuffer_PushValue<SIZE: u32, BUF_SZ: u32>(rb: RingBuffer<SIZE, BUF_SZ>,
     }
 }
 
-// Convolve with ärrays for samples and coefficients
-pub fn convolve<WIDTH: u32>(samples: ConvolveNumber[WIDTH],
-			    coefficients: ConvolveNumber[WIDTH])
-     -> ConvolveNumber {
-    for (idx, acc): (u32, ConvolveNumber) in u32:0..WIDTH {
-        float32::fma(coefficients[idx], samples[idx], acc)
-    }(float32::zero(u1:0))
-}
-
 // Convolve with array for coefficient, ringbuffer for samples.
 // Only do N operations starting at offset.
-pub fn convolve_rb<WIDTH: u32, RB_BUF_SZ: u32, N: u32 = { WIDTH }>(samples: RingBuffer<WIDTH, RB_BUF_SZ>,
+pub fn convolve<WIDTH: u32, RB_BUF_SZ: u32, N: u32 = { WIDTH }>(samples: RingBuffer<WIDTH, RB_BUF_SZ>,
 					       coefficients: ConvolveNumber[WIDTH],
 					       offset: u32)
      -> ConvolveNumber {
@@ -64,24 +55,11 @@ pub fn convolve_rb<WIDTH: u32, RB_BUF_SZ: u32, N: u32 = { WIDTH }>(samples: Ring
 const TOP_WIDTH = u32:32;
 fn top(s: RingBuffer<TOP_WIDTH, u32:32>,
        c: ConvolveNumber[TOP_WIDTH]) -> ConvolveNumber {
-    convolve_rb(s, c, u32:0)
+    convolve(s, c, u32:0)
 }
 
 #[test]
 fn convolve_test() {
-    let coefficients = map(s32[6]:[10, 11, -12, -13, 14, 15],
-			   float32::cast_from_fixed_using_rne);
-
-    let samples = map(s32[6]:[1, 2, 3, 4, 5, 6],
-		      float32::cast_from_fixed_using_rne);
-    let result = convolve(samples, coefficients);
-    let expected = float32::cast_from_fixed_using_rne(s32:104);
-    assert_eq(result, expected);
-}
-
-
-#[test]
-fn convolve_rb_test() {
     let coefficients = map(s32[6]:[10, 11, -12, -13, 14, 15],
 			   float32::cast_from_fixed_using_rne);
 
@@ -90,7 +68,7 @@ fn convolve_rb_test() {
         RingBuffer_PushValue(samples, float32::cast_from_fixed_using_rne(val))
     }(RingBuffer_default<u32:6, u32:8>());
 
-    let result = convolve_rb(samples, coefficients, u32:0);
+    let result = convolve(samples, coefficients, u32:0);
     let expected = float32::cast_from_fixed_using_rne(s32:104);
     assert_eq(result, expected);
 
@@ -100,14 +78,14 @@ fn convolve_rb_test() {
     }(samples);
     // Values in sliding ringbuffer window now [4, 5, 6, 12, -1, 7]
 
-    let result = convolve_rb(samples, coefficients, u32:0);
+    let result = convolve(samples, coefficients, u32:0);
     let expected = float32::cast_from_fixed_using_rne(s32:-42);
     assert_eq(result, expected);
 
     // Now let's do that in multiple steps.
     const N = u32:3;
-    let part1 = convolve_rb<u32:6, u32:8, N>(samples, coefficients, u32:0);
-    let part2 = convolve_rb<u32:6, u32:8, N>(samples, coefficients, N);
+    let part1 = convolve<u32:6, u32:8, N>(samples, coefficients, u32:0);
+    let part2 = convolve<u32:6, u32:8, N>(samples, coefficients, N);
     let result = float32::add(part1, part2);
     assert_eq(result, expected);
 }
