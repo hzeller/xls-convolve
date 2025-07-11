@@ -3,11 +3,14 @@ TOP=top
 DELAY_MODEL=sky130
 PIPELINE_STAGES=1
 
+DSLX_OPTIONS=--dslx_stdlib_path=$(DSLX_STDLIB_PATH)
+#DSLX_OPTIONS+=--type_inference_v2
+
 convolve.sv:
 convolve.test:
 
 %.ir: %.x
-	xls-ir-converter --top=$(TOP) --dslx_stdlib_path=$(DSLX_STDLIB_PATH) --output_file=$@ $^
+	xls-ir-converter --top=$(TOP) $(DSLX_OPTIONS) --output_file=$@ $^
 
 %.opt.ir: %.ir
 	xls-opt --output_path=$@ $^
@@ -16,7 +19,7 @@ convolve.test:
 	xls-codegen --delay_model=$(DELAY_MODEL) --pipeline_stages=$(PIPELINE_STAGES) --output_verilog_path=$@ --use_system_verilog $^
 
 %.test: %.x
-	xls-interpreter --dslx_stdlib_path=$(DSLX_STDLIB_PATH) --alsologtostderr $^
+	xls-interpreter $(DSLX_OPTIONS) --alsologtostderr $^
 
 clean:
 	rm -f *.ir *.sv
