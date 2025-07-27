@@ -1,3 +1,15 @@
+// Continuously convolve a stream of input data, e.g. to be used as FIR filter.
+// For a convolution of WIDTH items, there is
+//  - an Array of WIDTH elements for the coefficients.
+//  - a Ringbuffer of input data, holding WIDTH elements.
+// Goal is that eventually we have proc: With each new sample, it is added to
+// the ringbuffer and a convolution step is done over it, emitting one output
+// sample.
+//
+// To limit the area, the convolve() can take a parameter N to
+// only do part of the operation starting from an offset. That can be used
+// to time-multiplex in the proc (use WIDTH / N cycles to process one
+// full convolution.
 import std;
 import float32;
 
@@ -11,6 +23,7 @@ type ConvolveNumber = float32::F32;
 //
 // Ideally want to caclulate BUF_SZ: u32 = { std::next_pow2(SIZE + 1) }, but
 // that only works with tiv2 (but: https://github.com/google/xls/issues/2358)
+// But Tiv2 currently crashes with this code.
 pub struct RingBuffer<SIZE: u32, BUF_SZ: u32> {
     buffer: ConvolveNumber[BUF_SZ],     // TODO: want type template parameter
     write_pos: uN[std::clog2(BUF_SZ)],  // TODO: want as local type CountType = ...
@@ -37,8 +50,10 @@ fn RingBuffer_PushValue<SIZE: u32, BUF_SZ: u32>(rb: RingBuffer<SIZE, BUF_SZ>,
     }
 }
 
-// Convolve with array for coefficient, ringbuffer for samples.
-// Only do N operations starting at offset.
+// Convolve with WIDTH array for coefficient, ringbuffer for samples.
+// Only do N operations starting at offset; if N is not given,
+// assume N = WIDTH, i.e. convolution over the whole length.
+// Note area: Stamps out N copies of fma().
 pub fn convolve<WIDTH: u32, RB_BUF_SZ: u32, N: u32 = { WIDTH }>(samples: RingBuffer<WIDTH, RB_BUF_SZ>,
 					       coefficients: ConvolveNumber[WIDTH],
 					       offset: u32)
