@@ -21,16 +21,15 @@ type ConvolveNumber = float32::F32;
 // assert(SIZE < BUF_SIZE)
 // assert(is_pow2(BUF_SIZE))
 //
-// Ideally want to caclulate BUF_SZ: u32 = { std::next_pow2(SIZE + 1) }, but
-// that only works with tiv2 (but: https://github.com/google/xls/issues/2358)
-// But Tiv2 currently crashes with this code.
+// Ideally want to caclulate BUF_SZ: u32 = { std::next_pow2(SIZE + 1) }. Tiv2?
 pub struct RingBuffer<SIZE: u32, BUF_SZ: u32> {
     buffer: ConvolveNumber[BUF_SZ],     // TODO: want type template parameter
     write_pos: uN[std::clog2(BUF_SZ)],  // TODO: want as local type CountType = ...
 }
 
 // Should be in impl RingBuffer of sorts at some point.
-fn RingBuffer_default<SIZE: u32, BUF_SZ: u32>() -> RingBuffer<SIZE, BUF_SZ> {
+fn RingBuffer_default<SIZE: u32, BUF_SZ: u32 = { std::next_pow2(SIZE + 1) }>()
+   -> RingBuffer<SIZE, BUF_SZ> {
     RingBuffer<SIZE, BUF_SZ> { ..zero!<RingBuffer<SIZE, BUF_SZ>>() }
 }
 
@@ -81,7 +80,7 @@ fn convolve_test() {
     // TODO: could this be map() initialized ?
     let samples = for (val, samples) in s32[6]:[1, 2, 3, 4, 5, 6] {
         RingBuffer_PushValue(samples, float32::cast_from_fixed_using_rne(val))
-    }(RingBuffer_default<u32:6, u32:8>());
+    }(RingBuffer_default<u32:6>());
 
     let result = convolve(samples, coefficients, u32:0);
     let expected = float32::cast_from_fixed_using_rne(s32:104);

@@ -4,9 +4,7 @@ DELAY_MODEL=sky130
 PIPELINE_STAGES=1
 
 DSLX_OPTIONS=--dslx_stdlib_path=$(DSLX_STDLIB_PATH)
-
-# TiV2 would simplify things, but currently not happy.
-#DSLX_OPTIONS+=--type_inference_v2
+DSLX_OPTIONS+=--type_inference_v2
 
 convolve.sv:
 convolve.test:
