@@ -10,6 +10,8 @@
 // only do part of the operation starting from an offset. That can be used
 // to time-multiplex in the proc (use WIDTH / N cycles to process one
 // full convolution.
+#![feature(type_inference_v2)]
+
 import std;
 import float32;
 
@@ -28,7 +30,7 @@ pub struct RingBuffer<SIZE: u32, BUF_SZ: u32> {
 }
 
 // Should be in impl RingBuffer of sorts at some point.
-fn RingBuffer_default<SIZE: u32, BUF_SZ: u32 = { std::next_pow2(SIZE + 1) }>()
+fn RingBuffer_default<SIZE: u32, BUF_SZ: u32 = { std::next_pow2(SIZE + u32:1) }>()
    -> RingBuffer<SIZE, BUF_SZ> {
     RingBuffer<SIZE, BUF_SZ> { ..zero!<RingBuffer<SIZE, BUF_SZ>>() }
 }

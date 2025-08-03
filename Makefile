@@ -21,5 +21,8 @@ convolve.test:
 %.test: %.x
 	xls-interpreter $(DSLX_OPTIONS) --alsologtostderr $^
 
+# Keep intermediate results for inspection.
+.PRECIOUS: %.ir %.opt.ir
+
 clean:
 	rm -f *.ir *.sv
