@@ -2,7 +2,7 @@
 let
   xls = pkgs.stdenv.mkDerivation rec {
     name = "xls";
-    version = "v0.0.0-8349-g104e2ebde";
+    version = "v0.0.0-8447-ga9686a454";
     src = builtins.fetchurl {
       url = "https://github.com/google/xls/releases/download/${version}/xls-${version}-linux-x64.tar.gz";
     };
@@ -24,13 +24,6 @@ let
         # xls standard library
         mkdir -p $out/lib/xls
         mv xls/dslx $out/lib/xls
-    '';
-    postFixup = ''
-      # Make language server already know the stdlib to avoid
-      # messing with the editor configuration.
-      wrapProgram $out/bin/dslx-ls \
-        --add-flags "--stdlib_path=$out/lib/xls/dslx/stdlib" \
-      #  --add-flags "--type_inference_v2"
     '';
   };
 in pkgs.mkShell {
