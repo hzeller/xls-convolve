@@ -22,15 +22,15 @@ type ConvolveNumber = float32::F32;
 // unsigned. BUF_SIZE needs to be at least 1 more than SIZE
 // assert(SIZE < BUF_SIZE)
 // assert(is_pow2(BUF_SIZE))
-//
-// Ideally want to caclulate BUF_SZ: u32 = { std::next_pow2(SIZE + 1) }. Tiv2?
-pub struct RingBuffer<SIZE: u32, BUF_SZ: u32> {
+pub struct RingBuffer<SIZE: u32, BUF_SZ: u32 = { std::next_pow2(SIZE + 1) }> {
     buffer: ConvolveNumber[BUF_SZ],     // TODO: want type template parameter
     write_pos: uN[std::clog2(BUF_SZ)],  // TODO: want as local type CountType = ...
 }
 
 // Should be in impl RingBuffer of sorts at some point.
-fn RingBuffer_default<SIZE: u32, BUF_SZ: u32 = { std::next_pow2(SIZE + u32:1) }>()
+// In that case, the BUF_SZ calculation should come from the type and not needed
+// here.
+fn RingBuffer_default<SIZE: u32, BUF_SZ: u32 = { std::next_pow2(SIZE + 1) }>()
    -> RingBuffer<SIZE, BUF_SZ> {
     RingBuffer<SIZE, BUF_SZ> { ..zero!<RingBuffer<SIZE, BUF_SZ>>() }
 }
