@@ -1,3 +1,5 @@
+//usr/bin/env -S make convolve.test; exit   # just run as 'script' to run tests
+
 // Continuously convolve a stream of input data, e.g. to be used as FIR filter.
 // For a convolution of WIDTH items, there is
 //  - an Array of WIDTH elements for the coefficients.

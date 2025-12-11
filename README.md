@@ -31,6 +31,15 @@ server (but use the nicer binary name with dash).
 
 This uses a simple makefile for ease of use and clarity what is going on.
 
+## To test
+
+You can run `make convole.test`, but the convolve.x also can be invoked as
+script; the following will  run the tests:
+
+```
+./convolve.x
+```
+
 ## To use
 
 Given a foo.x file,
