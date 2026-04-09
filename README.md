@@ -3,14 +3,21 @@
 A framework to play with XLS from the distribution (avoids compiling for ~2h)
 and also not having to use the bazel rules but simple Makefiles instead.
 
+## Nix shell
+
+The distribution is a bit hard to use, the nix shell makes it a breeze to
+set up: fixes the binary names to be user friendly and sets up the necessary
+environment variables.
+
 The `shell.nix` fetches the binaries distributed in
-the [releases](https://github.com/google/xls/releases).
+the [releases](https://github.com/google/xls/releases). Just set the `version`
+to the desired version.
 
 Either request with nix-shell
 ```
 nix-shell
 ```
-... or set up `direnv` to do that automatically.
+... or set up `direnv` to do that automatically (`echo "use nix" > .envrc`).
 
 The distributed XLS binaries have very technical names that don't make sense
 for end-users and uses some naming-conventions with underscores.
@@ -34,7 +41,7 @@ This uses a simple makefile for ease of use and clarity what is going on.
 ## To test
 
 You can run `make convole.test`, but the convolve.x also can be invoked as
-script; the following will  run the tests:
+script; the following will run the tests:
 
 ```
 ./convolve.x
