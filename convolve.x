@@ -24,32 +24,27 @@ type ConvolveNumber = float32::F32;
 // unsigned. BUF_SIZE needs to be at least 1 more than SIZE
 // assert(SIZE < BUF_SIZE)
 // assert(is_pow2(BUF_SIZE))
-pub struct RingBuffer<SIZE: u32, BUF_SZ: u32 = { std::next_pow2(SIZE + 1) }> {
-    buffer: ConvolveNumber[BUF_SZ],     // TODO: want type template parameter
+pub struct RingBuffer<SIZE: u32, BUF_SZ: u32 = {std::next_pow2(SIZE + 1)}> {
+    buffer: ConvolveNumber[BUF_SZ],  // TODO: want type template parameter
     write_pos: uN[std::clog2(BUF_SZ)],  // TODO: want as local type CountType = ...
 }
 
-// Should be in impl RingBuffer of sorts at some point.
-// In that case, the BUF_SZ calculation should come from the type and not needed
-// here.
-fn RingBuffer_default<SIZE: u32, BUF_SZ: u32 = { std::next_pow2(SIZE + 1) }>()
-   -> RingBuffer<SIZE, BUF_SZ> {
-    RingBuffer<SIZE, BUF_SZ> { ..zero!<RingBuffer<SIZE, BUF_SZ>>() }
-}
+impl RingBuffer<SIZE, BUF_SZ> {
+    fn default() -> RingBuffer<SIZE, BUF_SZ> {
+        RingBuffer<SIZE, BUF_SZ> { ..zero!<RingBuffer<SIZE, BUF_SZ>>() }
+    }
 
-fn RingBuffer_ReadAtOffset<SIZE: u32, BUF_SZ:u32>(rb: RingBuffer<SIZE, BUF_SZ>,
-						  offset: u32)
-				      -> ConvolveNumber {
-    type CountType = uN[std::clog2(BUF_SZ)];
-    rb.buffer[rb.write_pos - SIZE as CountType + offset as CountType]
-}
+    fn ReadAtOffset(self, offset: u32) -> ConvolveNumber {
+        type CountType = uN[std::clog2(BUF_SZ)];
+        self.buffer[self.write_pos - SIZE as CountType + offset as CountType]
+    }
 
-fn RingBuffer_PushValue<SIZE: u32, BUF_SZ: u32>(rb: RingBuffer<SIZE, BUF_SZ>,
-						v: ConvolveNumber)
-				   -> RingBuffer<SIZE, BUF_SZ> {
-    RingBuffer<SIZE, BUF_SZ> {
-        buffer: update(rb.buffer, rb.write_pos, v),
-        write_pos: rb.write_pos + uN[std::clog2(BUF_SZ)]:1,
+    // Push value to ring buffer and return modified buffer
+    fn PushValue(self, v: ConvolveNumber) -> RingBuffer<SIZE, BUF_SZ> {
+        RingBuffer<SIZE, BUF_SZ> {
+            buffer: update(self.buffer, self.write_pos, v),
+            write_pos: self.write_pos + uN[std::clog2(BUF_SZ)]:1,
+        }
     }
 }
 
@@ -57,34 +52,30 @@ fn RingBuffer_PushValue<SIZE: u32, BUF_SZ: u32>(rb: RingBuffer<SIZE, BUF_SZ>,
 // Only do N operations starting at offset; if N is not given,
 // assume N = WIDTH, i.e. convolution over the whole length.
 // Note area: Stamps out N copies of fma().
-pub fn convolve<WIDTH: u32, RB_BUF_SZ: u32, N: u32 = { WIDTH }>(samples: RingBuffer<WIDTH, RB_BUF_SZ>,
-					       coefficients: ConvolveNumber[WIDTH],
-					       offset: u32)
-     -> ConvolveNumber {
+pub fn convolve<WIDTH: u32, RB_BUF_SZ: u32, N: u32 = {WIDTH}>
+    (samples: RingBuffer<WIDTH, RB_BUF_SZ>, coefficients: ConvolveNumber[WIDTH], offset: u32)
+    -> ConvolveNumber {
     assert!(offset + N <= WIDTH, "Sweep outside range");
     for (idx, acc): (u32, ConvolveNumber) in u32:0..N {
-        float32::fma(coefficients[idx + offset],
-	             RingBuffer_ReadAtOffset<WIDTH, RB_BUF_SZ>(samples, idx + offset),
-		     acc)
+        float32::fma(coefficients[idx + offset], samples.ReadAtOffset(idx + offset), acc)
     }(float32::zero(u1:0))
 }
 
 // A fully typed-out top() for code generation.
 const TOP_WIDTH = u32:32;
-fn top(s: RingBuffer<TOP_WIDTH, u32:32>,
-       c: ConvolveNumber[TOP_WIDTH]) -> ConvolveNumber {
+
+fn top(s: RingBuffer<TOP_WIDTH, u32:32>, c: ConvolveNumber[TOP_WIDTH]) -> ConvolveNumber {
     convolve(s, c, u32:0)
 }
 
 #[test]
 fn convolve_test() {
-    let coefficients = map(s32[6]:[10, 11, -12, -13, 14, 15],
-			   float32::cast_from_fixed_using_rne);
+    let coefficients = map(s32[6]:[10, 11, -12, -13, 14, 15], float32::cast_from_fixed_using_rne);
 
     // TODO: could this be map() initialized ?
     let samples = for (val, samples) in s32[6]:[1, 2, 3, 4, 5, 6] {
-        RingBuffer_PushValue(samples, float32::cast_from_fixed_using_rne(val))
-    }(RingBuffer_default<u32:6>());
+        samples.PushValue(float32::cast_from_fixed_using_rne(val))
+    }(RingBuffer<u32:6>::default());
 
     let result = convolve(samples, coefficients, u32:0);
     let expected = float32::cast_from_fixed_using_rne(s32:104);
@@ -92,7 +83,7 @@ fn convolve_test() {
 
     // Add a few more samples. This will also make the ringbuffer wrap around.
     let samples = for (val, samples) in s32[3]:[12, -1, 7] {
-        RingBuffer_PushValue(samples, float32::cast_from_fixed_using_rne(val))
+        samples.PushValue(float32::cast_from_fixed_using_rne(val))
     }(samples);
     // Values in sliding ringbuffer window now [4, 5, 6, 12, -1, 7]
 
