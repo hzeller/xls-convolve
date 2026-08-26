@@ -9,6 +9,8 @@ DSLX_OPTIONS=--dslx_stdlib_path=$(DSLX_STDLIB_PATH)
 convolve.sv:
 convolve.test:
 
+test: convolve.test
+
 %.ir: %.x
 	xls-ir-converter --top=$(TOP) $(DSLX_OPTIONS) --output_file=$@ $^
 
