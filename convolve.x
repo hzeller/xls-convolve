@@ -19,12 +19,15 @@ import float32;
 
 type ConvolveNumber = float32::F32;
 
-// SIZE is the size we see between read and write, BUF_SIZE is
+// SIZE is the fixed size we see between read and write, BUF_SIZE is
 // next power of two, so that it can easily be addressed with a fixed-bit width
 // unsigned. BUF_SIZE needs to be at least 1 more than SIZE
-// assert(SIZE < BUF_SIZE)
-// assert(is_pow2(BUF_SIZE))
+// There is no read pos, as it is by definition always SIZE elements behind
+// write.
 pub struct RingBuffer<SIZE: u32, BUF_SZ: u32 = {std::next_pow2(SIZE + 1)}> {
+    //static_assert(SIZE < BUF_SIZE);
+    //static_assert(is_pow2(BUF_SIZE))
+
     buffer: ConvolveNumber[BUF_SZ],  // TODO: want type template parameter
     write_pos: uN[std::clog2(BUF_SZ)],  // TODO: want as local type CountType = ...
 }
@@ -34,6 +37,7 @@ impl RingBuffer<SIZE, BUF_SZ> {
         RingBuffer<SIZE, BUF_SZ> { ..zero!<RingBuffer<SIZE, BUF_SZ>>() }
     }
 
+    // Read value SIZE elements behind write pos, plus offset.
     fn ReadAtOffset(self, offset: u32) -> ConvolveNumber {
         type CountType = uN[std::clog2(BUF_SZ)];
         self.buffer[self.write_pos - SIZE as CountType + offset as CountType]
@@ -66,6 +70,28 @@ const TOP_WIDTH = u32:32;
 
 fn top(s: RingBuffer<TOP_WIDTH, u32:32>, c: ConvolveNumber[TOP_WIDTH]) -> ConvolveNumber {
     convolve(s, c, u32:0)
+}
+
+#[test]
+fn ringbuffer_test() {
+    let buffer = RingBuffer<7>::default();
+
+    let zero_value = float32::cast_from_fixed_using_rne(s32:0);
+    // Default is just filled with zeroes
+    assert_eq(buffer.ReadAtOffset(0), zero_value);
+    assert_eq(buffer.ReadAtOffset(1), zero_value);
+    assert_eq(buffer.write_pos, 0);
+
+    let buffer = for (val, samples) in s32[6]:[1, 2, 3, 4, 5, 6] {
+        samples.PushValue(float32::cast_from_fixed_using_rne(val))
+    }(RingBuffer<u32:6>::default());
+
+    let test_value = float32::cast_from_fixed_using_rne(s32:3);
+    assert_eq(buffer.write_pos, 6);
+    map(0..6, |i|{
+	assert_eq(buffer.ReadAtOffset(i as u32),
+		  float32::cast_from_fixed_using_rne((i + 1) as s32));
+    });
 }
 
 #[test]
