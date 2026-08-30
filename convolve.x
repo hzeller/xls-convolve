@@ -93,6 +93,13 @@ fn ringbuffer_test() {
 	assert_eq(buffer.ReadAtOffset(i as u32),
 		  float32::cast_from_fixed_using_rne((i + 1) as s32));
     });
+
+    // Adding one more value and now we start reading where value is 2
+    let buffer = buffer.PushValue(float32::cast_from_fixed_using_rne(s32:7));
+    map(0..6, |i|{
+	assert_eq(buffer.ReadAtOffset(i as u32),
+		  float32::cast_from_fixed_using_rne((i + 2) as s32));
+    });
 }
 
 #[test]
