@@ -25,21 +25,22 @@ type ConvolveNumber = float32::F32;
 // There is no read pos, as it is by definition always SIZE elements behind
 // write.
 pub struct RingBuffer<SIZE: u32, BUF_SZ: u32 = {std::next_pow2(SIZE + 1)}> {
-    //static_assert(SIZE < BUF_SIZE);
-    //static_assert(is_pow2(BUF_SIZE))
-
+    //type CountType = uN[std::clog2(BUF_SZ)];  // would be good here
+    //const_assert!(SIZE < BUF_SIZE);
+    //const_assert!(is_pow2(BUF_SIZE))
     buffer: ConvolveNumber[BUF_SZ],  // TODO: want type template parameter
     write_pos: uN[std::clog2(BUF_SZ)],  // TODO: want as local type CountType = ...
 }
 
 impl RingBuffer<SIZE, BUF_SZ> {
+    type CountType = uN[std::clog2(BUF_SZ)];
+
     fn default() -> RingBuffer<SIZE, BUF_SZ> {
         RingBuffer<SIZE, BUF_SZ> { ..zero!<RingBuffer<SIZE, BUF_SZ>>() }
     }
 
     // Read value SIZE elements behind write pos, plus offset.
     fn ReadAtOffset(self, offset: u32) -> ConvolveNumber {
-        type CountType = uN[std::clog2(BUF_SZ)];
         self.buffer[self.write_pos - SIZE as CountType + offset as CountType]
     }
 
@@ -47,7 +48,7 @@ impl RingBuffer<SIZE, BUF_SZ> {
     fn PushValue(self, v: ConvolveNumber) -> RingBuffer<SIZE, BUF_SZ> {
         RingBuffer<SIZE, BUF_SZ> {
             buffer: update(self.buffer, self.write_pos, v),
-            write_pos: self.write_pos + uN[std::clog2(BUF_SZ)]:1,
+            write_pos: self.write_pos + 1,
         }
     }
 }
@@ -60,7 +61,7 @@ pub fn convolve<WIDTH: u32, RB_BUF_SZ: u32, N: u32 = {WIDTH}>
     (samples: RingBuffer<WIDTH, RB_BUF_SZ>, coefficients: ConvolveNumber[WIDTH], offset: u32)
     -> ConvolveNumber {
     assert!(offset + N <= WIDTH, "Sweep outside range");
-    for (idx, acc): (u32, ConvolveNumber) in u32:0..N {
+    for (idx, acc): (u32, ConvolveNumber) in 0..N {
         float32::fma(coefficients[idx + offset], samples.ReadAtOffset(idx + offset), acc)
     }(float32::zero(u1:0))
 }
@@ -68,8 +69,8 @@ pub fn convolve<WIDTH: u32, RB_BUF_SZ: u32, N: u32 = {WIDTH}>
 // A fully typed-out top() for code generation.
 const TOP_WIDTH = u32:32;
 
-fn top(s: RingBuffer<TOP_WIDTH, u32:32>, c: ConvolveNumber[TOP_WIDTH]) -> ConvolveNumber {
-    convolve(s, c, u32:0)
+fn top(s: RingBuffer<TOP_WIDTH>, c: ConvolveNumber[TOP_WIDTH]) -> ConvolveNumber {
+    convolve(s, c, 0)
 }
 
 #[test]
@@ -84,7 +85,7 @@ fn ringbuffer_test() {
 
     let buffer = for (val, samples) in s32[6]:[1, 2, 3, 4, 5, 6] {
         samples.PushValue(float32::cast_from_fixed_using_rne(val))
-    }(RingBuffer<u32:6>::default());
+    }(RingBuffer<6>::default());
 
     let test_value = float32::cast_from_fixed_using_rne(s32:3);
     assert_eq(buffer.write_pos, 6);
@@ -101,9 +102,9 @@ fn convolve_test() {
     // TODO: could this be map() initialized ?
     let samples = for (val, samples) in s32[6]:[1, 2, 3, 4, 5, 6] {
         samples.PushValue(float32::cast_from_fixed_using_rne(val))
-    }(RingBuffer<u32:6>::default());
+    }(RingBuffer<6>::default());
 
-    let result = convolve(samples, coefficients, u32:0);
+    let result = convolve(samples, coefficients, 0);
     let expected = float32::cast_from_fixed_using_rne(s32:104);
     assert_eq(result, expected);
 
@@ -113,14 +114,14 @@ fn convolve_test() {
     }(samples);
     // Values in sliding ringbuffer window now [4, 5, 6, 12, -1, 7]
 
-    let result = convolve(samples, coefficients, u32:0);
+    let result = convolve(samples, coefficients, 0);
     let expected = float32::cast_from_fixed_using_rne(s32:-42);
     assert_eq(result, expected);
 
     // Now let's do that in multiple steps.
     const N = u32:3;
-    let part1 = convolve<u32:6, u32:8, N>(samples, coefficients, u32:0);
-    let part2 = convolve<u32:6, u32:8, N>(samples, coefficients, N);
+    let part1 = convolve<6, 8, N>(samples, coefficients, 0);
+    let part2 = convolve<6, 8, N>(samples, coefficients, N);
     let result = float32::add(part1, part2);
     assert_eq(result, expected);
 }
