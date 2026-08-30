@@ -26,8 +26,6 @@ type ConvolveNumber = float32::F32;
 // write.
 pub struct RingBuffer<SIZE: u32, BUF_SZ: u32 = {std::next_pow2(SIZE + 1)}> {
     //type CountType = uN[std::clog2(BUF_SZ)];  // would be good here
-    //const_assert!(SIZE < BUF_SIZE);
-    //const_assert!(is_pow2(BUF_SIZE))
     buffer: ConvolveNumber[BUF_SZ],  // TODO: want type template parameter
     write_pos: uN[std::clog2(BUF_SZ)],  // TODO: want as local type CountType = ...
 }
@@ -36,6 +34,8 @@ impl RingBuffer<SIZE, BUF_SZ> {
     type CountType = uN[std::clog2(BUF_SZ)];
 
     fn default() -> RingBuffer<SIZE, BUF_SZ> {
+	//assert!(SIZE <= BUF_SZ, "Buffer size calculation wrong");
+	//assert!(std::is_pow2(BUF_SZ), "Buffer needs to be a power of 2");
         RingBuffer<SIZE, BUF_SZ> { ..zero!<RingBuffer<SIZE, BUF_SZ>>() }
     }
 
