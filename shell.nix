@@ -2,7 +2,7 @@
 let
   xls = pkgs.stdenv.mkDerivation rec {
     name = "xls";
-    version = "v0.0.0-10585-gfcee69d03";
+    version = "v0.0.0-10596-g83b1ffcde";
     src = builtins.fetchurl {
       url = "https://github.com/google/xls/releases/download/${version}/xls-${version}-linux-x64.tar.gz";
     };

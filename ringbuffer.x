@@ -22,8 +22,8 @@ impl RingBuffer<T, SIZE, BUF_SZ> {
     type CountType = uN[std::clog2(BUF_SZ)];
 
     fn default() -> RingBuffer<T, SIZE, BUF_SZ> {
-	//assert!(SIZE <= BUF_SZ, "Buffer size calculation wrong");
-	//assert!(std::is_pow2(BUF_SZ), "Buffer needs to be a power of 2");
+        assert!(SIZE <= BUF_SZ, "Buffer size calculation wrong");
+        assert!(std::is_pow2(BUF_SZ), "Buffer needs to be a power of 2");
         RingBuffer<T, SIZE, BUF_SZ> { ..zero!<RingBuffer<T, SIZE, BUF_SZ>>() }
     }
 
