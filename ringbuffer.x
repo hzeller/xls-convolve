@@ -18,12 +18,12 @@ pub struct RingBuffer<T: type, SIZE: u32, BUF_SZ: u32 = {std::next_pow2(SIZE)}> 
     write_pos: uN[std::clog2(BUF_SZ)],  // TODO: want as local type CountType = ...
 }
 
-impl RingBuffer<T, SIZE, BUF_SZ> {
+pub impl RingBuffer<T, SIZE, BUF_SZ> {
     const INTERNAL_BUF_SZ = BUF_SZ;
     type CountType = uN[std::clog2(BUF_SZ)];
 
     fn default() -> Self {
-        assert!(SIZE <= BUF_SZ, "Buffer size calculation wrong");
+        assert!(SIZE <= BUF_SZ, "Smaller buffer than required by size");
         assert!(std::is_pow2(BUF_SZ), "Buffer needs to be a power of 2");
 
         RingBuffer<T, SIZE, BUF_SZ> { ..zero!<RingBuffer<T, SIZE, BUF_SZ>>() }
@@ -65,7 +65,7 @@ fn ringbuffer_initialized_with_zero_test() {
 
 fn ringbuffer_functionality<BUFFER_SIZE:u32>() {
     type TestType = RingBuffer<u32, BUFFER_SIZE>;
-    //type CountType = TestType::CountType;  // this doesn't work yet
+    //type CountType = TestType::CountType;  // this doesn't work yet #4898
     type CountType = uN[std::clog2(TestType::INTERNAL_BUF_SZ)];
 
     // Let's push some values into the buffer, that are derived from the
