@@ -22,7 +22,7 @@ impl RingBuffer<T, SIZE, BUF_SZ> {
     const INTERNAL_BUF_SZ = BUF_SZ;
     type CountType = uN[std::clog2(BUF_SZ)];
 
-    fn default() -> RingBuffer<T, SIZE, BUF_SZ> {
+    fn default() -> Self {
         assert!(SIZE <= BUF_SZ, "Buffer size calculation wrong");
         assert!(std::is_pow2(BUF_SZ), "Buffer needs to be a power of 2");
 
@@ -37,7 +37,7 @@ impl RingBuffer<T, SIZE, BUF_SZ> {
     }
 
     // Push value to ring buffer and return modified buffer
-    fn PushValue(self, v: T) -> RingBuffer<T, SIZE, BUF_SZ> {
+    fn PushValue(self, v: T) -> Self {
         RingBuffer<T, SIZE, BUF_SZ> {
             buffer: update(self.buffer, self.write_pos, v),
             write_pos: self.write_pos + 1,
