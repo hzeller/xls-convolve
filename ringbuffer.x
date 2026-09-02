@@ -9,9 +9,9 @@ import std;
 
 // SIZE is the fixed size we see between read and write, BUF_SIZE is
 // next power of two, so that it can easily be addressed with a fixed-bit width
-// unsigned. BUF_SIZE needs to be at least 1 more than SIZE
+// unsigned. If SIZE is a power of two already, ReadAt() is cheaper.
 // There is no read pos, as it is by definition always SIZE elements behind
-// write.
+// write and we always ReadAt() from there with an offset.
 pub struct RingBuffer<T: type, SIZE: u32, BUF_SZ: u32 = {std::next_pow2(SIZE)}> {
     //type CountType = uN[std::clog2(BUF_SZ)];  // would be good here
     buffer: T[BUF_SZ],
@@ -30,7 +30,7 @@ impl RingBuffer<T, SIZE, BUF_SZ> {
     }
 
     // Read value SIZE elements behind write pos, plus offset.
-    fn ReadAtOffset(self, offset: u32) -> T {
+    fn ReadAt(self, offset: u32) -> T {
         // Read pos is always SIZE behind; if SIZE == BUF_SIZE we start reading
         // at exact the position the next write will overwrite
         self.buffer[self.write_pos - SIZE as CountType + offset as CountType]
@@ -54,7 +54,7 @@ fn ringbuffer_initialized_with_zero_test() {
     // A fresh buffer should be all zeroes.
     let buffer = TestType::default();
     map(0..BUFFER_SIZE, |i| {
-	assert_eq(buffer.ReadAtOffset(i), u32:0);
+	assert_eq(buffer.ReadAt(i), u32:0);
     });
 }
 
@@ -74,12 +74,12 @@ fn ringbuffer_functionality_test() {
 
     assert_eq(buffer.write_pos, BUFFER_SIZE as CountType);
     map(0..BUFFER_SIZE, |i|{
-	assert_eq(buffer.ReadAtOffset(i as u32), (i + 10) as u32);
+	assert_eq(buffer.ReadAt(i as u32), (i + 10) as u32);
     });
 
     // Adding one more value and now we start reading where value is one more
     let buffer = buffer.PushValue(BUFFER_SIZE + 10);
     map(0..BUFFER_SIZE, |i|{
-	assert_eq(buffer.ReadAtOffset(i as u32), (i + 1 + 10) as u32);
+	assert_eq(buffer.ReadAt(i as u32), (i + 1 + 10) as u32);
     });
 }

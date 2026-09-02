@@ -30,7 +30,7 @@ pub fn convolve<WIDTH: u32, RB_BUF_SZ: u32, N: u32 = {WIDTH}>
     -> ConvolveNumber {
     assert!(offset + N <= WIDTH, "Sweep outside range");
     for (idx, acc): (u32, ConvolveNumber) in 0..N {
-        float32::fma(coefficients[idx + offset], samples.ReadAtOffset(idx + offset), acc)
+        float32::fma(coefficients[idx + offset], samples.ReadAt(idx + offset), acc)
     }(float32::zero(u1:0))
 }
 
