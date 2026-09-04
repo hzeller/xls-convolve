@@ -19,7 +19,7 @@ test: ringbuffer.test convolve.test
 	xls-opt --output_path=$@ $^
 
 %.sv : %.opt.ir
-	xls-codegen --delay_model=$(DELAY_MODEL) --pipeline_stages=$(PIPELINE_STAGES) --output_verilog_path=$@ --use_system_verilog $^
+	xls-codegen --delay_model=$(DELAY_MODEL) --pipeline_stages=$(PIPELINE_STAGES) --use_system_verilog --output_verilog_path=$@  $^
 
 %.test: %.x
 	xls-interpreter $(DSLX_OPTIONS) --alsologtostderr $^
