@@ -13,7 +13,6 @@
 // to time-multiplex in the proc (use WIDTH / N cycles to process one
 // full convolution.
 #![feature(generics)]
-#![feature(type_inference_v2)]
 
 import std;
 import float32;

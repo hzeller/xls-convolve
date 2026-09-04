@@ -3,7 +3,6 @@
 // A Generic ringbuffer implementation.
 
 #![feature(generics)]
-#![feature(type_inference_v2)]
 
 import std;
 
@@ -13,7 +12,7 @@ import std;
 // There is no read pos, as it is by definition always SIZE elements behind
 // write and we always ReadAt() from there with an offset.
 pub struct RingBuffer<T: type, SIZE: u32, BUF_SZ: u32 = {std::next_pow2(SIZE)}> {
-    //type CountType = uN[std::clog2(BUF_SZ)];  // would be good here
+    // type CountType = uN[std::clog2(BUF_SZ)];  // would be good here
     buffer: T[BUF_SZ],
     write_pos: uN[std::clog2(BUF_SZ)],  // TODO: want as local type CountType = ...
 }
@@ -45,53 +44,48 @@ pub impl RingBuffer<T, SIZE, BUF_SZ> {
     }
 }
 
-fn ringbuffer_initialized_with_zero<BUFFER_SIZE:u32>() {
+fn ringbuffer_initialized_with_zero<BUFFER_SIZE: u32>() {
     type TestType = RingBuffer<u32, BUFFER_SIZE>;
 
     // A fresh buffer should be all zeroes.
     let buffer = TestType::default();
-    map(0..BUFFER_SIZE, |i| {
-	assert_eq(buffer.ReadAt(i), u32:0);
-    });
+    map(0..BUFFER_SIZE, |i| { assert_eq(buffer.ReadAt(i), 0); });
 }
 
 #[test]
 fn ringbuffer_initialized_with_zero_test() {
+
     // commented out due to https://github.com/google/xls/issues/4895
-    // ringbuffer_initialized_with_zero<u32:7>();
-    // ringbuffer_initialized_with_zero<u32:8>();
-    // ringbuffer_initialized_with_zero<u32:9>();
+    // ringbuffer_initialized_with_zero<7>();
+    // ringbuffer_initialized_with_zero<8>();
+    // ringbuffer_initialized_with_zero<9>();
 }
 
-fn ringbuffer_functionality<BUFFER_SIZE:u32>() {
+fn ringbuffer_functionality<BUFFER_SIZE: u32>() {
     type TestType = RingBuffer<u32, BUFFER_SIZE>;
     //type CountType = TestType::CountType;  // this doesn't work yet #4898
     type CountType = uN[std::clog2(TestType::INTERNAL_BUF_SZ)];
 
     // Let's push some values into the buffer, that are derived from the
     // index, so they are easy to test.
-    let buffer = for (val, samples) in u32:10..(BUFFER_SIZE + 10) {
+    let buffer = for (val, samples) in 10..(BUFFER_SIZE + 10) {
         samples.PushValue(val)
     }(TestType::default());
 
     assert_eq(buffer.write_pos, BUFFER_SIZE as CountType);
-    map(0..BUFFER_SIZE, |i|{
-	assert_eq(buffer.ReadAt(i as u32), (i + 10) as u32);
-    });
+    map(0..BUFFER_SIZE, |i| { assert_eq(buffer.ReadAt(i), i + 10); });
 
     // Adding one more value and now we start reading where value is one more
     let buffer = buffer.PushValue(BUFFER_SIZE + 10);
-    map(0..BUFFER_SIZE, |i|{
-	assert_eq(buffer.ReadAt(i as u32), (i + 1 + 10) as u32);
-    });
+    map(0..BUFFER_SIZE, |i| { assert_eq(buffer.ReadAt(i), i + 1 + 10); });
 }
 
 #[test]
 fn ringbuffer_functionaliy_test() {
-    ringbuffer_functionality<u32:7>();
-    ringbuffer_functionality<u32:8>();
-    ringbuffer_functionality<u32:9>();
-    ringbuffer_functionality<u32:15>();
-    ringbuffer_functionality<u32:16>();
-    ringbuffer_functionality<u32:17>();
+    ringbuffer_functionality<7>();
+    ringbuffer_functionality<8>();
+    ringbuffer_functionality<9>();
+    ringbuffer_functionality<15>();
+    ringbuffer_functionality<16>();
+    ringbuffer_functionality<17>();
 }
