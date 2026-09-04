@@ -8,6 +8,7 @@ DSLX_OPTIONS=--dslx_stdlib_path=$(DSLX_STDLIB_PATH)
 
 convolve.sv:
 convolve.test:
+ringbuffer.test:
 
 test: ringbuffer.test convolve.test
 
