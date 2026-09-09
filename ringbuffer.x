@@ -54,11 +54,9 @@ fn ringbuffer_initialized_with_zero<BUFFER_SIZE: u32>() {
 
 #[test]
 fn ringbuffer_initialized_with_zero_test() {
-
-    // commented out due to https://github.com/google/xls/issues/4895
-    // ringbuffer_initialized_with_zero<7>();
-    // ringbuffer_initialized_with_zero<8>();
-    // ringbuffer_initialized_with_zero<9>();
+    ringbuffer_initialized_with_zero<7>();
+    ringbuffer_initialized_with_zero<8>();
+    ringbuffer_initialized_with_zero<9>();
 }
 
 fn ringbuffer_functionality<BUFFER_SIZE: u32>() {
