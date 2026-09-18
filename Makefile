@@ -10,7 +10,7 @@ XLS_OPT          ?= xls-opt
 XLS_CODEGEN      ?= xls-codegen
 
 DSLX_OPTIONS=--dslx_stdlib_path=$(DSLX_STDLIB_PATH)
-#DSLX_OPTIONS+=--compare=jit   # only after a few recent issues are fixed
+DSLX_OPTIONS+=--compare=jit
 
 convolve.sv:
 convolve.test:

@@ -2,10 +2,10 @@
 let
   xls = pkgs.stdenv.mkDerivation rec {
     name = "xls";
-    version = "v0.0.0-10641-g567352b5a";
+    version = "v0.0.0-10704-g0a7c502cc";
     src = pkgs.fetchurl {
       url = "https://github.com/google/xls/releases/download/${version}/xls-${version}-linux-x64.tar.gz";
-      hash = "sha256-GBU5lSMMHQLNccBL4wYG52v7jl6lMrC4pMMXSHhvhtQ=";
+      hash = "sha256-YuqtaelUU3EXlIWvgggARVXDqetqA3+TWgsVTwgZT3Q=";
     };
     nativeBuildInputs = [ pkgs.makeWrapper ];
     installPhase = ''
