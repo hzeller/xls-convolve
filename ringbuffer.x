@@ -22,8 +22,8 @@ pub impl RingBuffer<T, SIZE, BUF_SZ> {
     type CountType = uN[std::clog2(BUF_SZ)];
 
     fn default() -> Self {
-        assert!(SIZE <= BUF_SZ, "Smaller buffer than required by size");
-        assert!(std::is_pow2(BUF_SZ), "Buffer needs to be a power of 2");
+        const_assert!(SIZE <= BUF_SZ); // Smaller buffer than required by size
+        const_assert!(std::is_pow2(BUF_SZ)); // Buffer needs to be a power of 2
 
         RingBuffer<T, SIZE, BUF_SZ> { ..zero!<RingBuffer<T, SIZE, BUF_SZ>>() }
     }
@@ -44,12 +44,12 @@ pub impl RingBuffer<T, SIZE, BUF_SZ> {
     }
 }
 
-fn ringbuffer_initialized_with_zero<BUFFER_SIZE: u32>() {
-    type TestType = RingBuffer<u32, BUFFER_SIZE>;
+fn ringbuffer_initialized_with_zero<CONTAINER_SIZE: u32>() {
+    type TestType = RingBuffer<u32, CONTAINER_SIZE>;
 
     // A fresh buffer should be all zeroes.
     let buffer = TestType::default();
-    map(0..BUFFER_SIZE, |i| { assert_eq(buffer.ReadAt(i), 0); });
+    map(0..CONTAINER_SIZE, |i| { assert_eq(buffer.ReadAt(i), 0); });
 }
 
 #[test]
@@ -59,23 +59,23 @@ fn ringbuffer_initialized_with_zero_test() {
     ringbuffer_initialized_with_zero<9>();
 }
 
-fn ringbuffer_functionality<BUFFER_SIZE: u32>() {
-    type TestType = RingBuffer<u32, BUFFER_SIZE>;
+fn ringbuffer_functionality<CONTAINER_SIZE: u32>() {
+    type TestType = RingBuffer<u32, CONTAINER_SIZE>;
     //type CountType = TestType::CountType;  // this doesn't work yet #4898
     type CountType = uN[std::clog2(TestType::INTERNAL_BUF_SZ)];
 
     // Let's push some values into the buffer, that are derived from the
     // index, so they are easy to test.
-    let buffer = for (val, samples) in 10..(BUFFER_SIZE + 10) {
+    let buffer = for (val, samples) in 10..(CONTAINER_SIZE + 10) {
         samples.PushValue(val)
     }(TestType::default());
 
-    assert_eq(buffer.write_pos, BUFFER_SIZE as CountType);
-    map(0..BUFFER_SIZE, |i| { assert_eq(buffer.ReadAt(i), i + 10); });
+    assert_eq(buffer.write_pos, CONTAINER_SIZE as CountType);
+    map(0..CONTAINER_SIZE, |i| { assert_eq(buffer.ReadAt(i), i + 10); });
 
     // Adding one more value and now we start reading where value is one more
-    let buffer = buffer.PushValue(BUFFER_SIZE + 10);
-    map(0..BUFFER_SIZE, |i| { assert_eq(buffer.ReadAt(i), i + 1 + 10); });
+    let buffer = buffer.PushValue(CONTAINER_SIZE + 10);
+    map(0..CONTAINER_SIZE, |i| { assert_eq(buffer.ReadAt(i), i + 1 + 10); });
 }
 
 #[test]
