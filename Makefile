@@ -10,7 +10,7 @@ XLS_OPT          ?= xls-opt
 XLS_CODEGEN      ?= xls-codegen
 
 DSLX_OPTIONS=--dslx_stdlib_path=$(DSLX_STDLIB_PATH)
-DSLX_OPTIONS+=--compare=jit
+INTERPRETER_OPTIONS=--compare=jit
 
 convolve.sv:
 convolve.test:
@@ -28,7 +28,7 @@ test: ringbuffer.test convolve.test
 	$(XLS_CODEGEN) --delay_model=$(DELAY_MODEL) --pipeline_stages=$(PIPELINE_STAGES) --use_system_verilog --output_verilog_path=$@  $^
 
 %.test: %.x
-	$(XLS_INTERPRETER) $(DSLX_OPTIONS) --alsologtostderr $^
+	$(XLS_INTERPRETER) $(DSLX_OPTIONS) $(INTERPRETER_OPTIONS) --alsologtostderr $^
 
 # Keep intermediate results for inspection.
 .PRECIOUS: %.ir %.opt.ir
