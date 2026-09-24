@@ -25,7 +25,7 @@ pub impl RingBuffer<T, SIZE, BUF_SZ> {
         const_assert!(SIZE <= BUF_SZ); // Smaller buffer than required by size
         const_assert!(std::is_pow2(BUF_SZ)); // Buffer needs to be a power of 2
 
-        RingBuffer<T, SIZE, BUF_SZ> { ..zero!<RingBuffer<T, SIZE, BUF_SZ>>() }
+        Self { ..zero!<Self>() }
     }
 
     // Read value SIZE elements behind write pos, plus offset.
